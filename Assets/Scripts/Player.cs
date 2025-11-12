@@ -54,21 +54,9 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        //if (IsPlayerOffScreen())
-        //{
-        //    Debug.Log("Player get damaged");
-        //    ResetPos();
-        //    ReduceLife();
-        //    return;
-        //}
-
         GoToStationaryPos();
-        // 1. Update jumping state
-        // The player is "jumping" if they are not grounded
         isJumping = !isGrounded;
 
-        // 2. Handle Jump Input
-        // This now just *starts* the jump
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             Jump();
@@ -124,10 +112,10 @@ public class Player : MonoBehaviour
         }
 
         float newX = Mathf.SmoothDamp(
-            transform.position.x, // The current position
-            stationaryPosition.x,              // The target position
-            ref velocityX,        // The current velocity (modified by the function)
-            smoothTime            // The time to reach the target
+            transform.position.x, 
+            stationaryPosition.x, 
+            ref velocityX,        
+            smoothTime            
         );
 
         transform.position = new Vector3(
@@ -154,15 +142,6 @@ public class Player : MonoBehaviour
         isSliding = false;
     }
 
-    private void ResetPos()
-    {
-        transform.position = new Vector3(
-             stationaryPosition.x,
-             5f,
-             transform.position.z
-        );
-    }
-
     private void OnTriggerEnter(Collider other)
     {
         // Check if the object we collided with is an Obstacle
@@ -176,15 +155,15 @@ public class Player : MonoBehaviour
         }
         catch (Exception e) { Debug.LogWarning(e); }
 
-        try
-        {
-            Platform pitPlatform = other.GetComponent<Platform>();
-            if (pitPlatform != null)
-            {
-                pitPlatform.HandleCollision(this);
-            }
-        }
-        catch (Exception e) { Debug.LogWarning(e); }
+        //try
+        //{
+        //    Platform pitPlatform = other.GetComponent<Platform>();
+        //    if (pitPlatform != null)
+        //    {
+        //        pitPlatform.HandleCollision(this);
+        //    }
+        //}
+        //catch (Exception e) { Debug.LogWarning(e); }
     }
 
     // --- ADDED: Collision-based Ground Check ---

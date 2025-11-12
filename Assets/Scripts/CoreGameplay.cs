@@ -22,7 +22,6 @@ public class CoreGameplay : MonoBehaviour
     private List<GameObject> platformPool;
 
     [Header("Queued Grounds")]
-    private GameObject playerCurrentPlatform;
     [SerializeField] Queue<GameObject> platformQueue;
 
     [Header("Platform spawning settings")]
@@ -36,31 +35,26 @@ public class CoreGameplay : MonoBehaviour
     [SerializeField] int preparePlatformCount;
 
     [Header("Pit Generation")]
-    public float pitSpawnChance = 0.25f; // 25% chance to spawn a pit
-    public float pitGap = 5.0f;           // How wide the pit/gap should be
-    public int minPlatformsBetweenPits = 2; // Must spawn at least 2 platforms before a new pit
-
+    public float pitSpawnChance = 0.25f;    
+    public float pitGap = 5.0f;             
+    public int minPlatformsBetweenPits = 2;
     private int platformsSpawnedSincePit = 0; // Counter
 
     float edgeScreenRight = 0;
 
-    [Header("Time based settings")]
+    [Header("Level State")]
     [SerializeField] bool isMoving = true;
 
     private int spawnedCount = 0;
     private bool doneStartPrepare = false;
+    private bool levelHasCompleted = false;
     public Player CurrentPlayer { get { return player; }}
 
-    private void OnDestroy()
-    {
-        player.OnSteppedPlatform -= SetCurrentPlatform; 
-    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         player.SetLife(targetLife);
-        player.OnSteppedPlatform += SetCurrentPlatform;
         platformQueue = new Queue<GameObject>();
         InitializePlatformPool();
     }
@@ -68,6 +62,8 @@ public class CoreGameplay : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (levelHasCompleted) return;
+
         if (travelledDistance > baseDistance)
         {
             Debug.Log("Game Ended");
@@ -77,7 +73,6 @@ public class CoreGameplay : MonoBehaviour
         if (IsPlayerOffScreen())
         {
             Debug.Log("Player get damaged");
-            //player.ResetPos();
             player.ReduceLife();
             RefreshPlayer();
             return;
@@ -118,29 +113,17 @@ public class CoreGameplay : MonoBehaviour
         travelledDistance += 1 * Time.deltaTime;
     }
 
-    void SetCurrentPlatform (GameObject curentPlatform)
-    {
-        playerCurrentPlatform = curentPlatform;
-    }
-
     void SpawnPlatform()
     {
-        // --- PIT CREATION LOGIC ---
-        // We only try to spawn a pit AFTER the preparation phase
-        // AND after the minimum number of platforms have spawned
         if (doneStartPrepare && platformsSpawnedSincePit >= minPlatformsBetweenPits)
         {
             // Check the random chance
             if (Random.Range(0f, 1f) < pitSpawnChance)
             {
                 // --- CREATE A PIT ---
-                // Instead of spawning a platform, just advance the "edge"
                 edgeScreenRight += pitGap;
-
                 // Reset the counter
                 platformsSpawnedSincePit = 0;
-
-                // Stop here; we are done for this spawn call
                 return;
             }
         }
@@ -192,8 +175,6 @@ public class CoreGameplay : MonoBehaviour
         }
         edgeScreenRight = spawnX + (platformWidth / 2);
 
-        // --- UPDATE PIT COUNTER ---
-        // If we spawned a platform *after* preparation, count it.
         if (doneStartPrepare)
         {
             platformsSpawnedSincePit++;
@@ -226,30 +207,18 @@ public class CoreGameplay : MonoBehaviour
         int poolSize = platformPool.Count;
         if (poolSize == 0) return null; // Safety check
 
-        // 1. Pick a random starting point to find a different object each time
         int startIndex = Random.Range(0, poolSize);
-
-        // 2. Loop through the entire pool (exactly 'poolSize' times)
         for (int i = 0; i < poolSize; i++)
         {
             int indexToCheck = (startIndex + i) % poolSize;
             GameObject platformObject = platformPool[indexToCheck];
 
-            // 3. Check BOTH conditions:
-            //    a) Is the object inactive (i.e., available to be used)?
-            //    b) Does it have the 'NormalPlatform' component?
             if (!platformObject.activeInHierarchy &&
                  platformObject.TryGetComponent<NormalPlatform>(out NormalPlatform platform))
             {
-                // Found a perfect match! Return it.
-                // DO NOT call SetActive(true) here. 
-                // The code that *calls* this function should activate it.
                 return platformObject;
             }
         }
-
-        // We looped through everything and couldn't find an available platform
-        // of this type. Return null.
         return null;
     }
 
@@ -315,35 +284,10 @@ public class CoreGameplay : MonoBehaviour
         isMoving = true;
     }
 
-    GameObject GetNextPlatform()
-    {
-        List<GameObject> myList = platformQueue.ToList();
-
-        int index = myList.IndexOf(playerCurrentPlatform);
-
-        if (index != -1 && index < myList.Count - 1)
-        {
-            GameObject nextItem = myList[index + 1];   
-            return nextItem;
-        }
-
-        Debug.Log("Condition is not fullfilled check the logic here");
-        return null;
-    }
-
-
     bool IsPlayerOffScreen()
     {
         // Convert the player's world position to viewport position
         Vector3 viewportPosition = Camera.main.WorldToViewportPoint(player.transform.position);
-
-        // Check if the Z coordinate is negative.
-        // This means the object is *behind* the camera, which is
-        // technically "off-screen" even if X/Y are 0-1.
-        if (viewportPosition.z < 0)
-        {
-            return true;
-        }
 
         // Now check if it's outside the 0-1 range on X or Y,
         // using the margin for a buffer.

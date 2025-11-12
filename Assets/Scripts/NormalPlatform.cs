@@ -1,16 +1,35 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class NormalPlatform : Platform
 {
     [SerializeField] Transform refreshPoint;
-    [SerializeField] CoreGameplay coreGameplay;
+    [SerializeField] List<GameObject> obstacles;
+    [SerializeField] List<Transform> obstaclePoint;
+    [SerializeField] float obstacleSpawnRate = 0.05f;
+    CoreGameplay coreGameplay;
+    
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     protected override void Start()
     {
-        //override start from base 
-        //I did not need to set this collider into trigger
-        
+        base.Start();
+
+        //Spawn on obstacle per platform
+        float randomChance = Random.value;
+
+        if (randomChance > obstacleSpawnRate)
+        {            
+            return;
+        }
+
+        var spawnedObstacles = Instantiate(obstacles[Random.Range(0, obstacles.Count)], this.transform);
+        spawnedObstacles.transform.position = obstaclePoint[Random.Range(0, obstaclePoint.Count)].transform.position;
+    }
+
+    public void SetObstacleRate(float spawnRate)
+    {
+        obstacleSpawnRate = spawnRate;
     }
 
     public void SetCoreGameplay(CoreGameplay gameplayManager)
