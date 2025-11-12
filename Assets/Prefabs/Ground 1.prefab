@@ -12,10 +12,10 @@ GameObject:
   - component: {fileID: 8575114528642087397}
   - component: {fileID: 7325291988651758914}
   - component: {fileID: 6594145339569428795}
-  - component: {fileID: 4478801339241914480}
+  - component: {fileID: 8022310688357239198}
   m_Layer: 0
-  m_Name: Ground
-  m_TagString: Ground
+  m_Name: Ground 1
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -30,10 +30,9 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 15, y: 15, z: 5}
+  m_LocalScale: {x: 3, y: 15, z: 5}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 8242741415376747056}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8575114528642087397
@@ -69,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0de88442d9a1ff7468c7cfe1fff145e4, type: 2}
+  - {fileID: 2100000, guid: 4db173e4edf6ce84d9625b7ca81704b8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -107,13 +106,13 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4478801339241914480
+--- !u!114 &8022310688357239198
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -122,39 +121,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 2970076329256634639}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5aae2b932707504798bf285e553f931, type: 3}
+  m_Script: {fileID: 11500000, guid: 910fb315c20edb949bdb1ef8923ed196, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NormalPlatform
-  refreshPoint: {fileID: 8242741415376747056}
-  coreGameplay: {fileID: 0}
---- !u!1 &8603945503498530665
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8242741415376747056}
-  m_Layer: 0
-  m_Name: RefreshPoint
-  m_TagString: Untagged
-  m_Icon: {fileID: 1206586993520771344, guid: 0000000000000000d000000000000000, type: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8242741415376747056
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8603945503498530665}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.394, y: 0.677, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 3051858781240942376}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::PitPlatform

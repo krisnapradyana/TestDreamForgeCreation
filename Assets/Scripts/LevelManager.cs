@@ -6,6 +6,8 @@ using System.Collections.Generic; // Added this line
 /// </summary>
 public class LevelManager : MonoBehaviour
 {
+    [SerializeField] Player player;
+
     [Header("Game Level Settings")]
     [Tooltip("The current level. Difficulty scales based on this.")]
     [SerializeField] int level = 1;
@@ -75,6 +77,7 @@ public class LevelManager : MonoBehaviour
     {
         SetLevelDifficulties();
         InitializePlatformPool();
+        player.SetLife(playerLife);
         rightmostPlatformEdge = despawnX;
     }
 

@@ -180,7 +180,7 @@ Camera:
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
-  orthographic: 1
+  orthographic: 0
   orthographic size: 5
   m_Depth: -1
   m_CullingMask:
@@ -256,6 +256,17 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &406113193 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 251828316647637920, guid: 9ab6e71197c301544be0808d5bd7ac39, type: 3}
+  m_PrefabInstance: {fileID: 1694025333}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a76719f391c0f09438b1dac0238b1857, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Player
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -448,13 +459,29 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 251828316647637920, guid: 9ab6e71197c301544be0808d5bd7ac39, type: 3}
+      propertyPath: jumpVelocity
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 251828316647637920, guid: 9ab6e71197c301544be0808d5bd7ac39, type: 3}
+      propertyPath: slideDuration
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 251828316647637920, guid: 9ab6e71197c301544be0808d5bd7ac39, type: 3}
+      propertyPath: fallMultiplier
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 251828316647637920, guid: 9ab6e71197c301544be0808d5bd7ac39, type: 3}
+      propertyPath: offScreenMargin
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 1945502835961189052, guid: 9ab6e71197c301544be0808d5bd7ac39, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5.32
       objectReference: {fileID: 0}
     - target: {fileID: 1945502835961189052, guid: 9ab6e71197c301544be0808d5bd7ac39, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 1945502835961189052, guid: 9ab6e71197c301544be0808d5bd7ac39, type: 3}
       propertyPath: m_LocalPosition.z
@@ -506,7 +533,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1781331087}
-  - component: {fileID: 1781331086}
+  - component: {fileID: 1781331088}
   m_Layer: 0
   m_Name: LevelManager
   m_TagString: Untagged
@@ -514,31 +541,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1781331086
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1781331085}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ba0c18689c1725a40822d96d6a2de257, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LevelManager
-  level: 1
-  playerLife: 0
-  obsacleRandomModifier: 0
-  platformSpeed: 5
-  platformYMax: 1
-  platformYMin: -1
-  obstacleSpace: 4
-  platformHeigthOffset: 10
-  baseLevelDistance: 1000
-  platformPrefab: {fileID: 2970076329256634639, guid: cb7a213c333f2f94ba4f9add41fe015a, type: 3}
-  poolSize: 30
-  despawnX: -20
-  spawnTriggerX: 20
 --- !u!4 &1781331087
 Transform:
   m_ObjectHideFlags: 0
@@ -554,6 +556,38 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1781331088
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1781331085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b417b2df4a300248a1dc9c8e4e55fd4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameLevelManager
+  player: {fileID: 406113193}
+  targetLife: 3
+  travelledDistance: 0
+  baseDistance: 30
+  platformPrefabs:
+  - {fileID: 4478801339241914480, guid: cb7a213c333f2f94ba4f9add41fe015a, type: 3}
+  - {fileID: 6098960838771826115, guid: 746597b04715dc248928931d959f6a27, type: 3}
+  poolSize: 30
+  spawnOffsetX: 5
+  despawnX: -20
+  triggerSpawnX: 20
+  platformYMin: -1
+  heigthOffset: 10
+  platformYMax: 1
+  platformSpeed: 5
+  preparePlatformCount: 3
+  pitSpawnChance: 0.25
+  pitGap: 3
+  minPlatformsBetweenPits: 2
+  isMoving: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 /// <summary>
 /// Handles player movement (jump, slide) and detects collisions with obstacles.
@@ -21,7 +23,6 @@ public class Player : MonoBehaviour
     [Tooltip("Gravity multiplier when jump button is released early (for short jumps).")]
     public float lowJumpMultiplier = 2f;
 
-
     // Player State
     [HideInInspector]
     public bool isJumping = false;
@@ -29,16 +30,39 @@ public class Player : MonoBehaviour
     public bool isSliding = false;
     private bool isGrounded = true;
 
+    //Rigidbody
     private Rigidbody rb;
+
+    //Stationary Position 
+    private Vector3 stationaryPosition;
+    private float velocityX = 0.0f;
+    public float smoothTime = 0.25f;
+
+    //Actions
+    public Action<GameObject> OnSteppedPlatform;
+
+    //Debug
+    MeshRenderer meshRenderer;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        meshRenderer = rb.GetComponent<MeshRenderer>();
+        stationaryPosition = transform.position;
         Time.timeScale = 1; // Ensure game is running
     }
 
     void Update()
     {
+        //if (IsPlayerOffScreen())
+        //{
+        //    Debug.Log("Player get damaged");
+        //    ResetPos();
+        //    ReduceLife();
+        //    return;
+        //}
+
+        GoToStationaryPos();
         // 1. Update jumping state
         // The player is "jumping" if they are not grounded
         isJumping = !isGrounded;
@@ -53,7 +77,7 @@ public class Player : MonoBehaviour
         // 3. Handle Slide Input
         if (Input.GetKeyDown(KeyCode.LeftControl) && isGrounded && !isSliding)
         {
-            isSliding = true;
+            StartCoroutine(SlideCoroutine());
         }
     }
 
@@ -92,6 +116,27 @@ public class Player : MonoBehaviour
         rb.linearVelocity = new Vector3(0, jumpVelocity, 0);
     }
 
+    private void GoToStationaryPos()
+    {
+        if (isGrounded) 
+        {
+            return;
+        }
+
+        float newX = Mathf.SmoothDamp(
+            transform.position.x, // The current position
+            stationaryPosition.x,              // The target position
+            ref velocityX,        // The current velocity (modified by the function)
+            smoothTime            // The time to reach the target
+        );
+
+        transform.position = new Vector3(
+            newX,
+            transform.position.y,
+            transform.position.z
+        );
+    }
+
     private IEnumerator SlideCoroutine()
     {
         isSliding = true;
@@ -99,7 +144,9 @@ public class Player : MonoBehaviour
         // --- Optional: Modify collider for sliding ---
         // e.g., transform.localScale = new Vector3(1, 0.5f, 1);
 
+        meshRenderer.material.color = Color.yellow;
         yield return new WaitForSeconds(slideDuration);
+        meshRenderer.material.color = Color.white;
 
         // --- Optional: Reset collider ---
         // e.g., transform.localScale = Vector3.one;
@@ -107,31 +154,48 @@ public class Player : MonoBehaviour
         isSliding = false;
     }
 
-    /// <summary>
-    /// This is the entry point for collision.
-    /// It finds the Obstacle component and calls its polymorphic method.
-    /// </summary>
+    private void ResetPos()
+    {
+        transform.position = new Vector3(
+             stationaryPosition.x,
+             5f,
+             transform.position.z
+        );
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         // Check if the object we collided with is an Obstacle
-        Obstacle obstacle = other.GetComponent<Obstacle>();
-
-        if (obstacle != null)
+        try
         {
-            // Use polymorphism:
-            // We don't know or care what *kind* of obstacle it is.
-            // We just tell it to handle the collision, and it will
-            // run its own specific version of HandleCollision.
-            obstacle.HandleCollision(this);
+            Obstacle obstacle = other.GetComponent<Obstacle>();
+            if (obstacle != null)
+            {
+                obstacle.HandleCollision(this);
+            }
         }
+        catch (Exception e) { Debug.LogWarning(e); }
+
+        try
+        {
+            Platform pitPlatform = other.GetComponent<Platform>();
+            if (pitPlatform != null)
+            {
+                pitPlatform.HandleCollision(this);
+            }
+        }
+        catch (Exception e) { Debug.LogWarning(e); }
     }
 
     // --- ADDED: Collision-based Ground Check ---
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            OnSteppedPlatform(collision.gameObject);
+        }
+    }
 
-    /// <summary>
-    /// This method is called by the physics engine when the player's
-    /// collider *starts* touching another non-trigger collider.
-    /// </summary>
     private void OnCollisionStay(Collision collision)
     {
         // Check if the object we landed on has the "Ground" tag
@@ -140,12 +204,6 @@ public class Player : MonoBehaviour
             isGrounded = true;
         }
     }
-
-    /// <summary>
-    /// This method is called by the physics engine when the player's
-    /// collider *stops* touching another non-trigger collider.
-    /// </summary>
-    /// 
 
     private void OnCollisionExit(Collision collision)
     {
@@ -165,21 +223,17 @@ public class Player : MonoBehaviour
     {
         Debug.Log("Life Reduced");
 
+        life--;
         if (life <= 0)
         {
             Die();
         }
     }
 
-    /// <summary>
-    /// Public method that obstacles can call to end the game.
-    /// </summary>
     private void Die()
     {
         Debug.Log("Game Over!");
         // Stop all game movement
         Time.timeScale = 0;
-
-        // Here you would add logic for a game over screen, respawning, etc.
     }
 }
