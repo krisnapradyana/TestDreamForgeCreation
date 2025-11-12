@@ -22,8 +22,6 @@ public class Player : MonoBehaviour
     public float fallMultiplier = 2.5f;
     [Tooltip("Gravity multiplier when jump button is released early (for short jumps).")]
     public float lowJumpMultiplier = 2f;
-
-    // Player State
     [HideInInspector]
     public bool isJumping = false;
     [HideInInspector]
@@ -38,11 +36,15 @@ public class Player : MonoBehaviour
     private float velocityX = 0.0f;
     public float smoothTime = 0.25f;
 
-    //Actions
-    public Action<GameObject> OnSteppedPlatform;
+    public Action OnPlayerOffscreen;
 
     //Debug
     MeshRenderer meshRenderer;
+
+    private void OnBecameInvisible()
+    {
+        OnPlayerOffscreen.Invoke();
+    }
 
     void Start()
     {
@@ -54,7 +56,7 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        GoToStationaryPos();
+        //GoToStationaryPos();
         isJumping = !isGrounded;
 
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)

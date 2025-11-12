@@ -6,9 +6,12 @@ using UnityEngine;
 
 public class CoreGameplay : MonoBehaviour
 {
+    [Header("Camera")]
+    [SerializeField] GameCamera gameCamera;
+
     [Header("Player Settings")]
     [Tooltip("These settings will decide when player off screen, and the outcome is player get damage")]
-    [SerializeField] float offScreenMargin = 1.0f;
+    [SerializeField] float offScreenMargin = 0.1f;
     [SerializeField] Player player;
     [SerializeField] int targetLife;
 
@@ -35,8 +38,8 @@ public class CoreGameplay : MonoBehaviour
     [SerializeField] int preparePlatformCount;
 
     [Header("Pit Generation")]
-    [SerializeField] float pitSpawnChance = 0.25f;    
-    [SerializeField] float pitGap = 5.0f;             
+    [SerializeField] float pitSpawnChance = 0.25f;
+    [SerializeField] float pitGap = 5.0f;
     [SerializeField] int minPlatformsBetweenPits = 2;
     private int platformsSpawnedSincePit = 0; // Counter
 
@@ -46,20 +49,32 @@ public class CoreGameplay : MonoBehaviour
     float edgeScreenRight = 0;
 
     [Header("Level State")]
-    [SerializeField] bool isMoving = true;
+    [SerializeField] bool isMoving = false;
 
     private int spawnedCount = 0;
     private bool doneStartPrepare = false;
     private bool levelHasCompleted = false;
-    public Player CurrentPlayer { get { return player; }}
+    private bool allowDamage = true;
 
+    public Player CurrentPlayer { get { return player; } }
+
+    private void OnDestroy()
+    {
+        player.OnPlayerOffscreen -= DamageNotVisiblePlayer;
+    }
+
+    private void Awake()
+    {
+        player.OnPlayerOffscreen += DamageNotVisiblePlayer;
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
-    {
+    {        
         player.SetLife(targetLife);
         platformQueue = new Queue<NormalPlatform>();
         InitializePlatformPool();
+        player.OnPlayerOffscreen += DamageNotVisiblePlayer;
     }
 
     // Update is called once per frame
@@ -70,14 +85,6 @@ public class CoreGameplay : MonoBehaviour
         if (travelledDistance > baseDistance)
         {
             Debug.Log("Game Ended");
-            return;
-        }
-
-        if (IsPlayerOffScreen())
-        {
-            Debug.Log("Player get damaged");
-            player.ReduceLife();
-            RefreshPlayer();
             return;
         }
 
@@ -106,11 +113,11 @@ public class CoreGameplay : MonoBehaviour
                 platformPool.Add(currentPlatform);
             }
         }
-    } 
+    }
 
     void TravelDistance()
     {
-        if(!isMoving)
+        if (!isMoving)
         {
             return;
         }
@@ -244,7 +251,7 @@ public class CoreGameplay : MonoBehaviour
             if (platform.gameObject.activeInHierarchy)
             {
                 platform.transform.Translate(-moveDistamce, 0, 0);
-                if(platform.transform.position.x < despawnX)
+                if (platform.transform.position.x < despawnX)
                 {
                     platform.GetComponent<NormalPlatform>().HidePlatform();
                     platformQueue.Dequeue();
@@ -268,12 +275,13 @@ public class CoreGameplay : MonoBehaviour
 
         NormalPlatform closestObject = activeList
             .Select(obj => new { GO = obj, Comp = obj.GetComponent<NormalPlatform>() })
-            .Where(x => x.Comp != null)                                           
-            .OrderBy(x => x.Comp.DistanceToPlayer())                                       
+            .Where(x => x.Comp != null)
+            .OrderBy(x => x.Comp.DistanceToPlayer())
             .Select(x => x.GO)
             .FirstOrDefault();
 
         player.transform.position = closestObject.GetComponent<NormalPlatform>().GetRefreshPosition();
+        gameCamera.RepositionCamera(player, 5.3f);
 
         //player.transform.position = new Vector3(targetX, yPlatformPos, player.transform.position.z);
         StartCoroutine(RefreshPlayerCoroutine());
@@ -284,22 +292,16 @@ public class CoreGameplay : MonoBehaviour
         isMoving = false;
         yield return new WaitForSeconds(1f);
         isMoving = true;
+        allowDamage = true;
     }
 
-    bool IsPlayerOffScreen()
+    void DamageNotVisiblePlayer()
     {
-        // Convert the player's world position to viewport position
-        Vector3 viewportPosition = Camera.main.WorldToViewportPoint(player.transform.position);
-
-        // Now check if it's outside the 0-1 range on X or Y,
-        // using the margin for a buffer.
-        bool isOffScreen = (
-            viewportPosition.x < 0 - offScreenMargin ||
-            viewportPosition.x > 1 + offScreenMargin ||
-            viewportPosition.y < 0 - offScreenMargin ||
-            viewportPosition.y > 1 + offScreenMargin
-        );
-
-        return isOffScreen;
+        if (!allowDamage) return;
+        allowDamage = false;
+        Debug.Log("Player get damaged");
+        player.ReduceLife();
+        RefreshPlayer();
+        return;
     }
 }

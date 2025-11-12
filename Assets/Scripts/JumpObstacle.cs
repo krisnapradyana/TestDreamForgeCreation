@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class JumpObstacle : Obstacle
 {
-    [SerializeField] float minHeigth = 1f;
-    [SerializeField] float maxHeigth = 3f;
+    [SerializeField] float minHeigth = .5f;
+    [SerializeField] float maxHeigth = 2.5f;
 
     private void OnEnable()
     {
