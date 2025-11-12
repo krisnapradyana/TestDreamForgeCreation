@@ -17,12 +17,12 @@ public class CoreGameplay : MonoBehaviour
     [SerializeField] private float baseDistance = 1000f;
 
     [Header("Platform Pooling")]
-    [SerializeField] List<Platform> platformPrefabs;
+    [SerializeField] List<NormalPlatform> platformPrefabs;
     [SerializeField] int poolSize;
-    private List<GameObject> platformPool;
+    private List<NormalPlatform> platformPool;
 
     [Header("Queued Grounds")]
-    [SerializeField] Queue<GameObject> platformQueue;
+    [SerializeField] Queue<NormalPlatform> platformQueue;
 
     [Header("Platform spawning settings")]
     [SerializeField] float spawnOffsetX = 0;
@@ -35,10 +35,13 @@ public class CoreGameplay : MonoBehaviour
     [SerializeField] int preparePlatformCount;
 
     [Header("Pit Generation")]
-    public float pitSpawnChance = 0.25f;    
-    public float pitGap = 5.0f;             
-    public int minPlatformsBetweenPits = 2;
+    [SerializeField] float pitSpawnChance = 0.25f;    
+    [SerializeField] float pitGap = 5.0f;             
+    [SerializeField] int minPlatformsBetweenPits = 2;
     private int platformsSpawnedSincePit = 0; // Counter
+
+    [Header("Obstacle Settings")]
+    [SerializeField] float obstacleRate = 0.3f;
 
     float edgeScreenRight = 0;
 
@@ -55,7 +58,7 @@ public class CoreGameplay : MonoBehaviour
     void Start()
     {
         player.SetLife(targetLife);
-        platformQueue = new Queue<GameObject>();
+        platformQueue = new Queue<NormalPlatform>();
         InitializePlatformPool();
     }
 
@@ -84,7 +87,7 @@ public class CoreGameplay : MonoBehaviour
 
     void InitializePlatformPool()
     {
-        platformPool = new List<GameObject>();
+        platformPool = new List<NormalPlatform>();
         if (platformPrefabs.Count <= 0)
         {
             Debug.Log("No platform prefab provided");
@@ -96,9 +99,11 @@ public class CoreGameplay : MonoBehaviour
             {
                 var randomNum = Random.Range(0, platformPrefabs.Count);
                 GameObject temp = Instantiate(platformPrefabs[randomNum].gameObject, transform);
-                temp.GetComponent<NormalPlatform>().SetCoreGameplay(this);
+                var currentPlatform = temp.GetComponent<NormalPlatform>();
+                currentPlatform.SetCoreGameplay(this);
+                currentPlatform.SetObstacleRate(obstacleRate);
                 temp.SetActive(false);
-                platformPool.Add(temp);
+                platformPool.Add(currentPlatform);
             }
         }
     } 
@@ -128,9 +133,7 @@ public class CoreGameplay : MonoBehaviour
             }
         }
 
-        // --- PLATFORM CREATION LOGIC (if no pit was created) ---
-
-        GameObject platform = null;
+        NormalPlatform platform = null;
 
         //separate behaviour post preparation
         if (doneStartPrepare)
@@ -165,7 +168,7 @@ public class CoreGameplay : MonoBehaviour
             float posY = -10;
             platform.transform.position = new Vector3(spawnX - spawnOffsetX, posY, 0);
         }
-        platform.SetActive(true);
+        platform.ShowPlatform();
         platformQueue.Enqueue(platform);
 
         spawnedCount++;
@@ -181,7 +184,7 @@ public class CoreGameplay : MonoBehaviour
         }
     }
 
-    GameObject GetPooledPlatform()
+    NormalPlatform GetPooledPlatform()
     {
         int poolSize = platformPool.Count;
 
@@ -192,7 +195,7 @@ public class CoreGameplay : MonoBehaviour
         for (int i = 0; i < poolSize; i++)
         {
             int indexToCheck = (startIndex + i) % poolSize;
-            if (!platformPool[indexToCheck].activeInHierarchy)
+            if (!platformPool[indexToCheck].gameObject.activeInHierarchy)
             {
                 // Found one! Return it.
                 return platformPool[indexToCheck];
@@ -202,7 +205,7 @@ public class CoreGameplay : MonoBehaviour
         return null;
 
     }
-    GameObject GetNormalPlatform()
+    NormalPlatform GetNormalPlatform()
     {
         int poolSize = platformPool.Count;
         if (poolSize == 0) return null; // Safety check
@@ -211,10 +214,9 @@ public class CoreGameplay : MonoBehaviour
         for (int i = 0; i < poolSize; i++)
         {
             int indexToCheck = (startIndex + i) % poolSize;
-            GameObject platformObject = platformPool[indexToCheck];
+            NormalPlatform platformObject = platformPool[indexToCheck];
 
-            if (!platformObject.activeInHierarchy &&
-                 platformObject.TryGetComponent<NormalPlatform>(out NormalPlatform platform))
+            if (!platformObject.gameObject.activeInHierarchy && platformObject.TryGetComponent<NormalPlatform>(out NormalPlatform platform))
             {
                 return platformObject;
             }
@@ -222,9 +224,9 @@ public class CoreGameplay : MonoBehaviour
         return null;
     }
 
-    float GetPlatformWidth(GameObject platform)
+    float GetPlatformWidth(NormalPlatform platform)
     {
-        return platform.transform.localScale.x;
+        return platform.ground.transform.localScale.x;
     }
 
     void MovePlatform()
@@ -239,12 +241,12 @@ public class CoreGameplay : MonoBehaviour
 
         foreach (var platform in platformPool)
         {
-            if (platform.activeInHierarchy)
+            if (platform.gameObject.activeInHierarchy)
             {
                 platform.transform.Translate(-moveDistamce, 0, 0);
                 if(platform.transform.position.x < despawnX)
                 {
-                    platform.SetActive(false);
+                    platform.GetComponent<NormalPlatform>().HidePlatform();
                     platformQueue.Dequeue();
                 }
             }
@@ -261,10 +263,10 @@ public class CoreGameplay : MonoBehaviour
     public void RefreshPlayer()
     {
         var activeList = platformPool
-            .Where(obj => obj != null && obj.activeInHierarchy)
+            .Where(obj => obj != null && obj.gameObject.activeInHierarchy)
             .ToList();
 
-        GameObject closestObject = activeList
+        NormalPlatform closestObject = activeList
             .Select(obj => new { GO = obj, Comp = obj.GetComponent<NormalPlatform>() })
             .Where(x => x.Comp != null)                                           
             .OrderBy(x => x.Comp.DistanceToPlayer())                                       

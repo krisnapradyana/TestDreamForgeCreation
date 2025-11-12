@@ -1,7 +1,7 @@
 using UnityEngine;
 
 //Made this platform template, In case I want to add plataform with effects
-//in the future. (e.g slow platform, dash platform, anti gravity platform etc)
+//in the future. (e.g slow platform, dash platform, anti gravity platform. etc)
 [RequireComponent(typeof(Collider))]
 public abstract class Platform : MonoBehaviour
 {

@@ -169,10 +169,10 @@ public class Player : MonoBehaviour
     // --- ADDED: Collision-based Ground Check ---
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            OnSteppedPlatform(collision.gameObject);
-        }
+        //if (collision.gameObject.CompareTag("Ground"))
+        //{
+        //    OnSteppedPlatform(collision.gameObject);
+        //}
     }
 
     private void OnCollisionStay(Collision collision)
